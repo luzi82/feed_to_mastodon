@@ -71,6 +71,7 @@ if __name__ == '__main__':
                 access_token = feed['mastodon_account']['access_token']
             )
     
+            first_launch = data['feed_data_dict'][feed_id]['last_refresh'] == 0
             data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
     
             fp = feedparser.parse(feed['feed_source']['url'])
@@ -88,7 +89,8 @@ if __name__ == '__main__':
                 feed_entry_list = filter(filter_match_regex,feed_entry_list)
             feed_entry_list = sorted(feed_entry_list,key=lambda x: (x.published_parsed,x.id))
             feed_entry_list = list(feed_entry_list)
-            feed_entry_list = feed_entry_list[:max_output_count]
+            if not first_launch:
+                feed_entry_list = feed_entry_list[:max_output_count]
             for feed_entry in feed_entry_list:
                 feed_entry_id = feed_entry.id
 
@@ -130,14 +132,23 @@ if __name__ == '__main__':
                     status = '{0}\n\n{1}'.format(feed_entry.title,feed_entry.link)
                     sensitive = False
 
+                visibility = 'unlisted' if first_launch else \
+                             'public'
+
                 if args.test:
                     print(feed_entry.published)
+                    print(visibility)
                     print(sensitive)
                     print(spoiler_text)
                     print(status)
                     print('=======================')
                 else:
-                    mm.status_post(status=status, sensitive=sensitive, spoiler_text=spoiler_text)
+                    mm.status_post(
+                        status=status,
+                        sensitive=sensitive,
+                        spoiler_text=spoiler_text,
+                        visibility=visibility
+                    )
     except:
         traceback.print_exc()
 
