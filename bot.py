@@ -53,57 +53,69 @@ if __name__ == '__main__':
 
     # output feed data
 
-    for feed in feed_list:
-        feed_id = feed['id']
-        max_output_count = feed['max_output_count']
-        if 'show_summary' in feed:
-            show_summary = (feed['show_summary']!=0)
-        else:
-            show_summary = True
-        
-        mm = Mastodon(
-            api_base_url = feed['mastodon_account']['api_base_url'],
-            client_id = feed['mastodon_account']['client_id'],
-            client_secret = feed['mastodon_account']['client_secret'],
-            access_token = feed['mastodon_account']['access_token']
-        )
-
-        def filter_memory(feed_entry):
-            feed_entry_id = feed_entry.id
-            entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
-            return entry_data_id not in data['entry_data_dict']
-        
-        fp = feedparser.parse(feed['feed_source']['url'])
-        feed_entry_list = list(fp.entries)
-        feed_entry_list = filter(filter_memory,feed_entry_list)
-        feed_entry_list = sorted(feed_entry_list,key=lambda x: (x.published_parsed,x.id))
-        feed_entry_list = list(feed_entry_list)
-        feed_entry_list = feed_entry_list[:max_output_count]
-        for feed_entry in feed_entry_list:
-            feed_entry_id = feed_entry.id
-
-            feed_entry_text = feed_entry.summary
-
-            char_limit = config['char_limit']
-            char_limit-=len(feed_entry.title)
-            char_limit-=len(feed_entry.link)
-            feed_entry_text = feed_entry_text[:char_limit]
+    try:
+        for feed in feed_list:
+            feed_id = feed['id']
+            max_output_count = feed['max_output_count']
+            if 'show_summary' in feed:
+                show_summary = (feed['show_summary']!=0)
+            else:
+                show_summary = True
             
-            if show_summary:
-                toot_text = '{0}\n\n{1}\n\n{2}'.format(feed_entry.title,feed_entry_text,feed_entry.link)
-            else:
-                toot_text = '{0}\n\n{1}'.format(feed_entry.title,feed_entry.link)
-            if args.test:
-                print(feed_entry.published)
-                print(toot_text)
-                print('=======================')
-            else:
-                mm.toot(toot_text)
+            mm = Mastodon(
+                api_base_url = feed['mastodon_account']['api_base_url'],
+                client_id = feed['mastodon_account']['client_id'],
+                client_secret = feed['mastodon_account']['client_secret'],
+                access_token = feed['mastodon_account']['access_token']
+            )
+    
+            def filter_memory(feed_entry):
+                feed_entry_id = feed_entry.id
+                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
+                return entry_data_id not in data['entry_data_dict']
+    
+            data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
+    
+            fp = feedparser.parse(feed['feed_source']['url'])
+            feed_entry_list = list(fp.entries)
+            feed_entry_list = filter(filter_memory,feed_entry_list)
+            feed_entry_list = sorted(feed_entry_list,key=lambda x: (x.published_parsed,x.id))
+            feed_entry_list = list(feed_entry_list)
+            feed_entry_list = feed_entry_list[:max_output_count]
+            for feed_entry in feed_entry_list:
+                feed_entry_id = feed_entry.id
 
-            entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
-            data['entry_data_dict'][entry_data_id] = {}
-            data['entry_data_dict'][entry_data_id]['last_seen'] = timestamp
-        data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
+                # mark done
+                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
+                data['entry_data_dict'][entry_data_id] = {}
+                data['entry_data_dict'][entry_data_id]['last_seen'] = timestamp
+    
+                feed_entry_text = feed_entry.summary
+    
+                char_limit = config['char_limit']
+                char_limit-=len(feed_entry.title)
+                char_limit-=len(feed_entry.link)
+                feed_entry_text = feed_entry_text[:char_limit]
+                
+                if show_summary:
+                    spoiler_text = feed_entry.title
+                    status = '{0}\n\n{1}'.format(feed_entry_text,feed_entry.link)
+                    sensitive = True
+                else:
+                    spoiler_text = None
+                    status = '{0}\n\n{1}'.format(feed_entry.title,feed_entry.link)
+                    sensitive = False
+
+                if args.test:
+                    print(feed_entry.published)
+                    print(sensitive)
+                    print(spoiler_text)
+                    print(status)
+                    print('=======================')
+                else:
+                    mm.status_post(status=status, sensitive=sensitive, spoiler_text=spoiler_text)
+    except:
+        print(sys.exc_info()[0])
 
     # forget old entry
     def should_remember(k,v):
