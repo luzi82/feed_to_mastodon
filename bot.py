@@ -7,6 +7,7 @@ import time
 import os
 from mastodon import Mastodon
 import re
+import traceback
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -103,7 +104,24 @@ if __name__ == '__main__':
                 char_limit-=len(feed_entry.link)
                 feed_entry_text = feed_entry_text[:char_limit]
                 
-                if show_summary:
+                content_dict = {
+                    'title':feed_entry.title,
+                    'text':feed_entry_text,
+                    'link':feed_entry.link
+                }
+
+                if 'status_format' in feed:
+                    status_format = feed['status_format']
+                    spoiler_text = None
+                    if 'spoiler_text' in status_format and status_format['spoiler_text'] is not None:
+                        spoiler_text = status_format['spoiler_text'].format(**content_dict)
+                    status = ''
+                    if 'status' in status_format and status_format['status'] is not None:
+                        status = status_format['status'].format(**content_dict)
+                    sensitive = False
+                    if 'sensitive' in status_format:
+                        sensitive = status_format['sensitive']
+                elif show_summary:
                     spoiler_text = feed_entry.title
                     status = '{0}\n\n{1}'.format(feed_entry_text,feed_entry.link)
                     sensitive = True
@@ -121,7 +139,7 @@ if __name__ == '__main__':
                 else:
                     mm.status_post(status=status, sensitive=sensitive, spoiler_text=spoiler_text)
     except:
-        print(sys.exc_info()[0])
+        traceback.print_exc()
 
     # forget old entry
     def should_remember(k,v):
