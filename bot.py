@@ -63,7 +63,7 @@ if __name__ == '__main__':
         )
         
         fp = feedparser.parse(feed['feed_source']['url'])
-        for feed_entry in reversed(fp.entries):
+        for feed_entry in fp.entries:
             feed_entry_id = feed_entry.id
             entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
             if entry_data_id in data['entry_data_dict']:

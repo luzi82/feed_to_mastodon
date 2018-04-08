@@ -9,9 +9,9 @@
                 "api_base_url":"https://mastodonserver.com",
                 "client_id":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                 "client_secret":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-                "access_token":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                "access_token":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
             }
-        },
+        }
     ],
     "operate_feed_count": 1,
     "min_refresh_sec": 900,
