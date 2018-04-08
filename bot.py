@@ -6,6 +6,7 @@ import feedparser
 import time
 import os
 from mastodon import Mastodon
+import re
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -69,16 +70,21 @@ if __name__ == '__main__':
                 access_token = feed['mastodon_account']['access_token']
             )
     
-            def filter_memory(feed_entry):
-                feed_entry_id = feed_entry.id
-                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
-                return entry_data_id not in data['entry_data_dict']
-    
             data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
     
             fp = feedparser.parse(feed['feed_source']['url'])
             feed_entry_list = list(fp.entries)
+            def filter_memory(feed_entry):
+                feed_entry_id = feed_entry.id
+                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
+                return entry_data_id not in data['entry_data_dict']
             feed_entry_list = filter(filter_memory,feed_entry_list)
+            if 'match_regex' in feed['feed_source']:
+                def filter_match_regex(feed_entry):
+                    pattern = feed['feed_source']['match_regex']
+                    title = feed_entry.title
+                    return (re.fullmatch(pattern,title) is not None)
+                feed_entry_list = filter(filter_match_regex,feed_entry_list)
             feed_entry_list = sorted(feed_entry_list,key=lambda x: (x.published_parsed,x.id))
             feed_entry_list = list(feed_entry_list)
             feed_entry_list = feed_entry_list[:max_output_count]
