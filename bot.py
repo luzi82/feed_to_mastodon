@@ -133,7 +133,8 @@ if __name__ == '__main__':
                     sensitive = False
 
                 visibility = 'unlisted' if first_launch else \
-                             'public'
+                             feed['visibility'] if 'visibility' in feed else \
+                             'unlisted'
 
                 if args.test:
                     print(feed_entry.published)
