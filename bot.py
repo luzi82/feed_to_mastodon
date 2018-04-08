@@ -10,6 +10,7 @@ from mastodon import Mastodon
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
+    parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
     
     timestamp = int(time.time())
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     def refresh_filter(feed):
         feed_id = feed['id']
         last_refresh = data['feed_data_dict'][feed_id]['last_refresh']
-        if last_refresh <= timestamp - config['min_refresh_sec']:
+        if last_refresh <= timestamp - feed['min_refresh_sec']:
             return True
     feed_list = filter(refresh_filter,feed_list)
 
@@ -54,6 +55,7 @@ if __name__ == '__main__':
 
     for feed in feed_list:
         feed_id = feed['id']
+        max_output_count = feed['max_output_count']
         
         mm = Mastodon(
             api_base_url = feed['mastodon_account']['api_base_url'],
@@ -61,28 +63,37 @@ if __name__ == '__main__':
             client_secret = feed['mastodon_account']['client_secret'],
             access_token = feed['mastodon_account']['access_token']
         )
-        
-        fp = feedparser.parse(feed['feed_source']['url'])
-        for feed_entry in fp.entries:
+
+        def filter_memory(feed_entry):
             feed_entry_id = feed_entry.id
             entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
-            if entry_data_id in data['entry_data_dict']:
-                continue
+            return entry_data_id not in data['entry_data_dict']
+        
+        fp = feedparser.parse(feed['feed_source']['url'])
+        feed_entry_list = list(fp.entries)
+        feed_entry_list = filter(filter_memory,feed_entry_list)
+        feed_entry_list = sorted(feed_entry_list,key=lambda x: (x.published_parsed,x.id))
+        feed_entry_list = list(feed_entry_list)
+        feed_entry_list = feed_entry_list[:max_output_count]
+        for feed_entry in feed_entry_list:
+            feed_entry_id = feed_entry.id
 
             feed_entry_text = feed_entry.summary
 
-            #print(feed_entry.title)
-            #print(feed_entry_text)
-            #print(feed_entry.link)
-            
             char_limit = config['char_limit']
             char_limit-=len(feed_entry.title)
             char_limit-=len(feed_entry.link)
             feed_entry_text = feed_entry_text[:char_limit]
             
             toot_text = '{0}\n\n{1}\n\n{2}'.format(feed_entry.title,feed_entry_text,feed_entry.link)
-            mm.toot(toot_text)
+            if args.test:
+                print(feed_entry.published)
+                print(toot_text)
+                print('=======================')
+            else:
+                mm.toot(toot_text)
 
+            entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
             data['entry_data_dict'][entry_data_id] = {}
             data['entry_data_dict'][entry_data_id]['last_seen'] = timestamp
         data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
