@@ -56,6 +56,10 @@ if __name__ == '__main__':
     for feed in feed_list:
         feed_id = feed['id']
         max_output_count = feed['max_output_count']
+        if 'show_summary' in feed:
+            show_summary = (feed['show_summary']!=0)
+        else:
+            show_summary = True
         
         mm = Mastodon(
             api_base_url = feed['mastodon_account']['api_base_url'],
@@ -85,7 +89,10 @@ if __name__ == '__main__':
             char_limit-=len(feed_entry.link)
             feed_entry_text = feed_entry_text[:char_limit]
             
-            toot_text = '{0}\n\n{1}\n\n{2}'.format(feed_entry.title,feed_entry_text,feed_entry.link)
+            if show_summary:
+                toot_text = '{0}\n\n{1}\n\n{2}'.format(feed_entry.title,feed_entry_text,feed_entry.link)
+            else:
+                toot_text = '{0}\n\n{1}'.format(feed_entry.title,feed_entry.link)
             if args.test:
                 print(feed_entry.published)
                 print(toot_text)
