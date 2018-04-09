@@ -167,6 +167,11 @@ if __name__ == '__main__':
             
         try:
             feed_entry_list = list(fp.entries)
+            def filter_non_memory(feed_entry):
+                feed_entry_id = feed_entry.id
+                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
+                return entry_data_id in data['entry_data_dict']
+            feed_entry_list = filter(filter_non_memory,feed_entry_list)
             
             for feed_entry in feed_entry_list:
                 feed_entry_id = feed_entry.id
