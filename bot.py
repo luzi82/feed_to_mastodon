@@ -55,8 +55,8 @@ if __name__ == '__main__':
 
     # output feed data
 
-    try:
-        for feed in feed_list:
+    for feed in feed_list:
+        try:
             feed_id = feed['id']
             max_output_count = feed['max_output_count']
             if 'show_summary' in feed:
@@ -144,14 +144,20 @@ if __name__ == '__main__':
                     print(status)
                     print('=======================')
                 else:
-                    mm.status_post(
-                        status=status,
-                        sensitive=sensitive,
-                        spoiler_text=spoiler_text,
-                        visibility=visibility
-                    )
-    except:
-        traceback.print_exc()
+                    try:
+                        mm.status_post(
+                            status=status,
+                            sensitive=sensitive,
+                            spoiler_text=spoiler_text,
+                            visibility=visibility
+                        )
+                    except:
+                        traceback.print_exc()
+                        print('BBMZQXSS {0}'.format(timestamp))
+
+        except:
+            traceback.print_exc()
+            print('BLPUISIB {0}'.format(timestamp))
 
     # forget old entry
     def should_remember(k,v):
