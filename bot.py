@@ -164,6 +164,20 @@ if __name__ == '__main__':
         except:
             traceback.print_exc()
             print('BLPUISIB {0}'.format(timestamp))
+            
+        try:
+            feed_entry_list = list(fp.entries)
+            
+            for feed_entry in feed_entry_list:
+                feed_entry_id = feed_entry.id
+
+                # mark seen
+                entry_data_id = '{0}|{1}'.format(feed_id, feed_entry_id)
+                data['entry_data_dict'][entry_data_id] = {}
+                data['entry_data_dict'][entry_data_id]['last_seen'] = timestamp
+        except:
+            traceback.print_exc()
+            print('DJGWXYTV {0}'.format(timestamp))
 
     # forget old entry
     def should_remember(k,v):
