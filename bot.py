@@ -75,6 +75,12 @@ if __name__ == '__main__':
             data['feed_data_dict'][feed_id]['last_refresh'] = timestamp
     
             fp = feedparser.parse(feed['feed_source']['url'])
+        except:
+            traceback.print_exc()
+            print('CELMZGEX {0}'.format(timestamp))
+            continue
+
+        try:
             feed_entry_list = list(fp.entries)
             def filter_memory(feed_entry):
                 feed_entry_id = feed_entry.id
