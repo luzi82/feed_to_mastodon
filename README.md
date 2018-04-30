@@ -1,6 +1,6 @@
-= feed_to_mastdon
+# feed_to_mastdon
 
-== setup
+## setup
 
 1. pip3 install --user --upgrade feedparser mastodon.py
 1. cp config.json.sample config.json
