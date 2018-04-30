@@ -10,11 +10,12 @@
                 "client_id":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                 "client_secret":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                 "access_token":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-            }
+            },
+            "min_refresh_sec": 900,
+            "max_output_count": 3
         }
     ],
     "operate_feed_count": 1,
-    "min_refresh_sec": 900,
     "entry_remember_sec": 43200,
     "datafile": "data.json",
     "char_limit":400
