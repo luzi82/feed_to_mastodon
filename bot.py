@@ -8,6 +8,7 @@ import os
 from mastodon import Mastodon
 import re
 import traceback
+from bs4 import BeautifulSoup
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -105,7 +106,13 @@ if __name__ == '__main__':
                 data['entry_data_dict'][entry_data_id] = {}
                 data['entry_data_dict'][entry_data_id]['last_seen'] = timestamp
     
+                feed_entry_title = feed_entry.title
+                feed_entry_title = BeautifulSoup(feed_entry_title,'html.parser').text
+                feed_entry_title = feed_entry_title.strip()
+
                 feed_entry_text = feed_entry.summary
+                feed_entry_text = BeautifulSoup(feed_entry_text,'html.parser').text
+                feed_entry_text = feed_entry_text.strip()
     
                 char_limit = config['char_limit']
                 char_limit-=len(feed_entry.title)
@@ -113,7 +120,7 @@ if __name__ == '__main__':
                 feed_entry_text = feed_entry_text[:char_limit]
                 
                 content_dict = {
-                    'title':feed_entry.title,
+                    'title':feed_entry_title,
                     'text':feed_entry_text,
                     'link':feed_entry.link
                 }
